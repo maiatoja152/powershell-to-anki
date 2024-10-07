@@ -61,7 +61,8 @@ function New-AnkiNote {
 		[Parameter(Mandatory)]
 		[String]$Source ,
 		[Parameter(Mandatory)]
-		[String[]]$Tags
+		[String[]]$Tags ,
+		[String]$BackExtra
 	)
 	return Invoke-AnkiConnect -Action "addNote" -Parameter @{
 		note = @{
@@ -71,6 +72,7 @@ function New-AnkiNote {
 				Front = $Front
 				Back = $Back
 				Hint = $Hint
+				"Back Extra" = $BackExtra
 				Source = $Source
 			}
 			tags = $Tags
@@ -84,7 +86,8 @@ $NoteIds = @()
 
 if ($Synopsis) {
 	$Front = $HelpPage.Synopsis
-	$Result = New-AnkiNote "Parent" $Front $Command "PowerShell command" $OnlineHelpUri @("PowerShell::Command")
+	$Example = '<div style="margin-top: 1rem">' + $HelpPage.examples.example[0].title + '</div>' + "<div>" + $HelpPage.examples.example[0].code + "</div>"
+	$Result = New-AnkiNote "Parent" $Front $Command "PowerShell command" $OnlineHelpUri @("PowerShell::Command") $Example
 	$NoteIds += $Result
 }
 
