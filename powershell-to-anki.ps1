@@ -5,11 +5,9 @@ param(
 	[String]$Command ,
 
 	[Parameter(Mandatory, ParameterSetName="SynopsisOnly")]
-	[Parameter(ParameterSetName="OptionOnly")]
 	[Parameter(Mandatory, ParameterSetName="SynopsisAndOption")]
 	[Switch]$Synopsis ,
 
-	[Parameter(ParameterSetName="SynopsisOnly")]
 	[Parameter(Mandatory, ParameterSetName="OptionOnly")]
 	[Parameter(Mandatory, ParameterSetName="SynopsisAndOption")]
 	[String[]]$Parameter ,
@@ -43,8 +41,7 @@ function Invoke-AnkiConnect {
 	$RequestJson = ConvertTo-Json -Depth 4 (Get-AnkiConnectRequestTable $Action $Parameter)
 	$Response = Invoke-RestMethod -Uri $AnkiConnectUri -Body $RequestJson
 
-	if ($Response["error"])
-	{
+	if ($Response["error"]) {
 		throw $Response["error"]
 	}
 
@@ -66,7 +63,7 @@ function New-AnkiNote {
 		[Parameter(Mandatory)]
 		[String[]]$Tags
 	)
-	Invoke-AnkiConnect -Action "addNote" -Parameter @{
+	return Invoke-AnkiConnect -Action "addNote" -Parameter @{
 		note = @{
 			deckName = $DeckName
 			modelName = "Basic"
@@ -83,12 +80,24 @@ function New-AnkiNote {
 
 $HelpPage = Get-Help $Command
 $OnlineHelpUri = $HelpPage.RelatedLinks.navigationLink[0].uri
+$NoteIds = @()
 
-if ($Synopsis)
-{
+if ($Synopsis) {
 	$Front = $HelpPage.Synopsis
 	$Result = New-AnkiNote "Parent" $Front $Command "PowerShell command" $OnlineHelpUri @("PowerShell::Command")
-	Invoke-AnkiConnect -Action "guiBrowse" -Parameter @{
-		query = "nid:" + $Result
+	$NoteIds += $Result
+}
+
+if ($Parameter.Count -gt 0) {
+	$Parameter | ForEach-Object {
+		$CurrentParameter = $HelpPage.parameters.parameter | Where-Object name -eq $PSItem
+		$Front = $CurrentParameter.description[0].Text
+		$Back = $CurrentParameter.name
+		$Result = New-AnkiNote "Parent" $Front $Back "PowerShell $Command parameter" $OnlineHelpUri @("PowerShell::Command::Parameter")
+		$NoteIds += $Result
 	}
+}
+
+Invoke-AnkiConnect -Action "guiBrowse" -Parameter @{
+	query = "nid:" + $($NoteIds -join ",")
 }
