@@ -12,7 +12,7 @@ param(
 	[Parameter(Mandatory, ParameterSetName="SynopsisAndOption")]
 	[String[]]$Parameter ,
 
-	[String]$AnkiConnectUri = "http://127.0.0.1:8765"
+	[String]$AnkiConnectUri = "http://localhost:8765"
 )
 
 function Get-AnkiConnectRequestTable {
@@ -39,7 +39,7 @@ function Invoke-AnkiConnect {
 		[Hashtable]$Parameter
 	)
 	$RequestJson = ConvertTo-Json -Depth 4 (Get-AnkiConnectRequestTable $Action $Parameter)
-	$Response = Invoke-RestMethod -Uri $AnkiConnectUri -Body $RequestJson
+	$Response = Invoke-RestMethod -Uri $AnkiConnectUri -Method Post -Body $RequestJson
 
 	if ($Response["error"]) {
 		throw $Response["error"]
