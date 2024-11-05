@@ -84,10 +84,26 @@ $Help = Get-Help $Command
 $OnlineHelpUri = $Help.RelatedLinks.navigationLink[0].uri
 $NoteIds = @()
 
+function Get-Example {
+	param(
+		[Parameter(Mandatory)]
+		[PSObject]$Help
+	)
+	$Example = $Help.examples.example[0]
+	$Output = "<div style=`"margin-top: 1rem;`">$($Example.title)</div>"
+	$Code = $Example.code
+	# Wrap each line of example code in a div
+	($Code -split "\r?\n").Trim() | ForEach-Object {
+		$Output += "`n<div>$PSItem</div>"
+	}
+
+	return $Output
+}
+
 if ($Synopsis) {
 	$Front = $Help.Synopsis
 	$Back = $Help.Name
-	$Example = "<div style=`"margin-top: 1rem;`">$($Help.examples.example[0].title)</div>`n<div>$($Help.examples.example[0].code)</div>"
+	$Example = Get-Example $Help
 	$Result = New-AnkiNote "Parent" $Front $Back "PowerShell command" $OnlineHelpUri @("PowerShell::Command") $Example
 	$NoteIds += $Result
 }
