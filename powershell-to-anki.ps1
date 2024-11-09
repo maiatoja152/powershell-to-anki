@@ -84,12 +84,14 @@ $Help = Get-Help $Command
 $OnlineHelpUri = $Help.RelatedLinks.navigationLink[0].uri
 $NoteIds = @()
 
-function Get-Example {
+function Get-ExampleFormatted {
 	param(
 		[Parameter(Mandatory)]
-		[PSObject]$Help
+		[PSObject]$Help ,
+		[Parameter(Mandatory)]
+		[Int]$Index
 	)
-	$Example = $Help.examples.example[0]
+	$Example = $Help.examples.example[$Index]
 	$Output = "<div style=`"margin-top: 1rem;`">$($Example.title)</div>"
 	$Code = $Example.code
 	# Wrap each line of example code in a div
@@ -100,10 +102,27 @@ function Get-Example {
 	return $Output
 }
 
+function Get-ParameterExample {
+	param(
+		[Parameter(Mandatory)]
+		[PSObject]$Help ,
+		[Parameter(Mandatory)]
+		[String]$ParameterName
+	)
+	$Index = 0
+	foreach ($PSItem in $Help.examples.example) {
+		if ($PSItem.code.Contains("-$ParameterName")) {
+			return Get-ExampleFormatted $Help $Index
+		}
+		$Index += 1
+	}
+	return ""
+}
+
 if ($Synopsis) {
 	$Front = $Help.Synopsis
 	$Back = $Help.Name
-	$Example = Get-Example $Help
+	$Example = Get-ExampleFormatted $Help 0
 	$Result = New-AnkiNote "Parent" $Front $Back "PowerShell command" $OnlineHelpUri @("PowerShell::Command") $Example
 	$NoteIds += $Result
 }
@@ -113,7 +132,8 @@ if ($Parameter.Count -gt 0) {
 		$CurrentParameter = $Help.parameters.parameter | Where-Object name -eq $PSItem
 		$Front = $CurrentParameter.description[0].Text
 		$Back = "<b>-$($CurrentParameter.name)</b> &lt;$($CurrentParameter.type.name)&gt;"
-		$Result = New-AnkiNote "Parent" $Front $Back "PowerShell $Command parameter" $OnlineHelpUri @("PowerShell::Command::Parameter")
+		$Example = Get-ParameterExample $Help $CurrentParameter.name
+		$Result = New-AnkiNote "Parent" $Front $Back "PowerShell $Command parameter" $OnlineHelpUri @("PowerShell::Command::Parameter") $Example
 		$NoteIds += $Result
 	}
 }
