@@ -12,14 +12,18 @@ param(
 	[Parameter(Mandatory, ParameterSetName="SynopsisAndOption")]
 	[String[]]$Parameter ,
 
-	[String]$AnkiConnectUri = "http://localhost:8765"
+	[String]$AnkiConnectUri = "http://localhost:8765" ,
+	[String]$Deck = "Parent" ,
+	[String]$HintSynopsis = "PowerShell command" ,
+	[String[]]$TagsSynopsis = @("PowerShell::Command") ,
+	[String]$HintParameter = "PowerShell {command} parameter" ,
+	[String[]]$TagsParameter = @("PowerShell::Command::Parameter")
 )
 
 function Get-AnkiConnectRequestTable {
 	param(
 		[Parameter(Mandatory)]
 		[String]$Action ,
-
 		[Parameter(Mandatory)]
 		[Hashtable]$Parameter
 	)
@@ -34,24 +38,21 @@ function Invoke-AnkiConnect {
 	param(
 		[Parameter(Mandatory)]
 		[String]$Action ,
-
 		[Parameter(Mandatory)]
 		[Hashtable]$Parameter
 	)
 	$RequestJson = ConvertTo-Json -Depth 4 (Get-AnkiConnectRequestTable $Action $Parameter)
 	$Response = Invoke-RestMethod -Uri $AnkiConnectUri -Method Post -Body $RequestJson
-
 	if ($Response["error"]) {
 		throw $Response["error"]
 	}
-
 	return $Response.result
 }
 
 function New-AnkiNote {
 	param(
 		[Parameter(Mandatory)]
-		[String]$DeckName ,
+		[String]$Deck ,
 		[Parameter(Mandatory)]
 		[String]$Front ,
 		[Parameter(Mandatory)]
@@ -66,7 +67,7 @@ function New-AnkiNote {
 	)
 	return Invoke-AnkiConnect -Action "addNote" -Parameter @{
 		note = @{
-			deckName = $DeckName
+			deckName = $Deck
 			modelName = "Basic"
 			fields = @{
 				Front = $Front
@@ -123,7 +124,8 @@ if ($Synopsis) {
 	$Front = $Help.Synopsis
 	$Back = $Help.Name
 	$Example = Get-ExampleFormatted $Help 0
-	$Result = New-AnkiNote "Parent" $Front $Back "PowerShell command" $OnlineHelpUri @("PowerShell::Command") $Example
+
+	$Result = New-AnkiNote $Deck $Front $Back $HintSynopsis $OnlineHelpUri $TagsSynopsis $Example
 	$NoteIds += $Result
 }
 
@@ -133,7 +135,8 @@ if ($Parameter.Count -gt 0) {
 		$Front = $CurrentParameter.description[0].Text
 		$Back = "<b>-$($CurrentParameter.name)</b> &lt;$($CurrentParameter.type.name)&gt;"
 		$Example = Get-ParameterExample $Help $CurrentParameter.name
-		$Result = New-AnkiNote "Parent" $Front $Back "PowerShell $Command parameter" $OnlineHelpUri @("PowerShell::Command::Parameter") $Example
+
+		$Result = New-AnkiNote $Deck $Front $Back $HintParameter $OnlineHelpUri $TagsParameter $Example
 		$NoteIds += $Result
 	}
 }
