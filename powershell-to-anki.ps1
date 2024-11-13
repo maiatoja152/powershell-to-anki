@@ -93,12 +93,22 @@ function Get-ExampleFormatted {
 		[Int]$Index
 	)
 	$Example = $Help.examples.example[$Index]
-	$Output = "<div style=`"margin-top: 1rem;`">$($Example.title)</div>"
+
+	$Title = $Example.title
+	$Title = $Title.Trim(@("-", " "))
+	$Replace = [RegEx]::Matches($Title, "^Example \d+")
+	$Title = $Title -replace $Replace, "<strong>$Replace</strong>"
+	$Output = "<div class=`"powershell-example`">`n<div>$Title</div>"
+
 	$Code = $Example.code
-	# Wrap each line of example code in a div
-	($Code -split "\r?\n").Trim() | ForEach-Object {
-		$Output += "`n<div>$PSItem</div>"
+	$Lines = ($Code -split "\r?\n").Trim()
+	$Lines | foreach {
+		if ($PSItem)
+		{
+			$Output += "`n<div>$PSItem</div>"
+		}
 	}
+	$Output += "`n</div>"
 
 	return $Output
 }
