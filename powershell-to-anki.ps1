@@ -16,7 +16,7 @@ param(
 	[String]$Deck = "Parent" ,
 	[String]$HintSynopsis = "PowerShell command" ,
 	[String[]]$TagsSynopsis = @("PowerShell::Command") ,
-	[String]$HintParameter = "PowerShell {command} parameter" ,
+	[String]$HintParameter = "PowerShell {0} parameter" ,
 	[String[]]$TagsParameter = @("PowerShell::Command::Parameter")
 )
 
@@ -140,12 +140,12 @@ if ($Synopsis) {
 }
 
 if ($Parameter.Count -gt 0) {
+	$HintParameter = $HintParameter -f $Command
 	$Parameter | ForEach-Object {
 		$CurrentParameter = $Help.parameters.parameter | Where-Object name -eq $PSItem
 		$Front = $CurrentParameter.description[0].Text
 		$Back = "<b>-$($CurrentParameter.name)</b> &lt;$($CurrentParameter.type.name)&gt;"
 		$Example = Get-ParameterExample $Help $CurrentParameter.name
-
 		$Result = New-AnkiNote $Deck $Front $Back $HintParameter $OnlineHelpUri $TagsParameter $Example
 		$NoteIds += $Result
 	}
