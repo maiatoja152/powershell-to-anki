@@ -87,14 +87,14 @@ $Help = Get-Help $Command
 $OnlineHelpUri = $Help.RelatedLinks.navigationLink[0].uri
 $NoteIds = @()
 
-function Get-ExampleFormatted {
+function Format-Example {
 	param(
-		[Parameter(Mandatory)]
-		[PSObject]$Help ,
-		[Parameter(Mandatory)]
-		[Int]$Index
+		[Parameter(Mandatory, ValueFromPipeline)]
+		[PSObject]$Example
 	)
-	$Example = $Help.examples.example[$Index]
+	if (-not $Example) {
+		return ""
+	}
 
 	$Title = $Example.title
 	$Title = $Title.Trim(@("-", " "))
@@ -115,27 +115,10 @@ function Get-ExampleFormatted {
 	return $Output
 }
 
-function Get-ParameterExample {
-	param(
-		[Parameter(Mandatory)]
-		[PSObject]$Help ,
-		[Parameter(Mandatory)]
-		[String]$ParameterName
-	)
-	$Index = 0
-	foreach ($PSItem in $Help.examples.example) {
-		if ($PSItem.code.Contains("-$ParameterName")) {
-			return Get-ExampleFormatted $Help $Index
-		}
-		$Index += 1
-	}
-	return ""
-}
-
 if ($Synopsis) {
 	$Front = $Help.Synopsis
 	$Back = $Help.Name
-	$Example = Get-ExampleFormatted $Help $ExampleIndex
+	$Example = $Help.examples.example[$ExampleIndex] | Format-Example
 
 	$Result = New-AnkiNote $Deck $Front $Back $HintSynopsis $OnlineHelpUri $TagsSynopsis $Example
 	$NoteIds += $Result
@@ -146,9 +129,12 @@ if ($Parameter.Count -gt 0) {
 	$Parameter | ForEach-Object {
 		$CurrentParameter = $Help.parameters.parameter | Where-Object name -eq $PSItem
 		$Front = $CurrentParameter.description[0].Text
-		$Back = "<b>-$($CurrentParameter.name)</b> &lt;$($CurrentParameter.type.name)&gt;"
-		$Example = Get-ParameterExample $Help $CurrentParameter.name
-		$Result = New-AnkiNote $Deck $Front $Back $HintParameter $OnlineHelpUri $TagsParameter $Example
+		$ParameterName = $CurrentParameter.name
+		$Back = "<b>-$($ParameterName)</b> &lt;$($CurrentParameter.type.name)&gt;"
+		$Example = $Help.examples.example | Where-Object { $PSItem.code.Contains("-$ParameterName") }
+		$BackExtra = $Example | Format-Example
+
+		$Result = New-AnkiNote $Deck $Front $Back $HintParameter $OnlineHelpUri $TagsParameter $BackExtra
 		$NoteIds += $Result
 	}
 }
