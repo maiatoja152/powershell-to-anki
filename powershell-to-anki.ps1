@@ -12,6 +12,8 @@ param(
 	[Parameter(Mandatory, ParameterSetName="SynopsisAndOption")]
 	[String[]]$Parameter ,
 
+	[Int]$ExampleIndex = 0 ,
+
 	[String]$AnkiConnectUri = "http://localhost:8765" ,
 	[String]$Deck = "Parent::IT" ,
 	[String]$HintSynopsis = "PowerShell command" ,
@@ -133,7 +135,7 @@ function Get-ParameterExample {
 if ($Synopsis) {
 	$Front = $Help.Synopsis
 	$Back = $Help.Name
-	$Example = Get-ExampleFormatted $Help 0
+	$Example = Get-ExampleFormatted $Help $ExampleIndex
 
 	$Result = New-AnkiNote $Deck $Front $Back $HintSynopsis $OnlineHelpUri $TagsSynopsis $Example
 	$NoteIds += $Result
