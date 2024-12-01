@@ -13,7 +13,7 @@ param(
 	[String[]]$Parameter ,
 
 	[String]$AnkiConnectUri = "http://localhost:8765" ,
-	[String]$Deck = "Parent" ,
+	[String]$Deck = "Parent::IT" ,
 	[String]$HintSynopsis = "PowerShell command" ,
 	[String[]]$TagsSynopsis = @("PowerShell::Command") ,
 	[String]$HintParameter = "PowerShell {0} parameter" ,
