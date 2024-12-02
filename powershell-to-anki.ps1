@@ -125,7 +125,7 @@ if ($Synopsis) {
 }
 
 if ($Parameter.Count -gt 0) {
-	$HintParameter = $HintParameter -f $Command
+	$HintParameter = $HintParameter -f $Help.Name
 	$Parameter | ForEach-Object {
 		$CurrentParameter = $Help.parameters.parameter | Where-Object name -eq $PSItem
 		$Front = $CurrentParameter.description[0].Text
