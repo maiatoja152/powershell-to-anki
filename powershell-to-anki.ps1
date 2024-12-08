@@ -17,9 +17,9 @@ param(
 	[String]$AnkiConnectUri = "http://localhost:8765" ,
 	[String]$Deck = "Parent::IT" ,
 	[String]$HintSynopsis = "PowerShell command" ,
-	[String[]]$TagsSynopsis = @("PowerShell::Command") ,
+	[String[]]$TagsSynopsis = @("IT::PowerShell::Command") ,
 	[String]$HintParameter = "PowerShell {0} parameter" ,
-	[String[]]$TagsParameter = @("PowerShell::Command::Parameter")
+	[String[]]$TagsParameter = @("IT::PowerShell::Command::Parameter")
 )
 
 function Get-AnkiConnectRequestTable {
