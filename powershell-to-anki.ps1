@@ -62,7 +62,7 @@ function New-AnkiNote {
 		[Parameter(Mandatory)]
 		[String]$Hint ,
 		[Parameter(Mandatory)]
-		[String]$Source ,
+		[String]$Link ,
 		[Parameter(Mandatory)]
 		[String[]]$Tags ,
 		[String]$BackExtra
@@ -76,7 +76,7 @@ function New-AnkiNote {
 				Back = $Back
 				Hint = $Hint
 				"Back Extra" = $BackExtra
-				Source = $Source
+				Links = $Link
 			}
 			tags = $Tags
 		}
@@ -85,6 +85,7 @@ function New-AnkiNote {
 
 $Help = Get-Help $Command
 $OnlineHelpUri = $Help.RelatedLinks.navigationLink[0].uri
+$Link = "<a href=`"$($OnlineHelpUri)`" title=`"$($OnlineHelpUri)`">Source</a>"
 $NoteIds = @()
 
 function Format-Example {
@@ -120,7 +121,7 @@ if ($Synopsis) {
 	$Back = $Help.Name
 	$Example = $Help.examples.example[$ExampleIndex] | Format-Example
 
-	$Result = New-AnkiNote $Deck $Front $Back $HintSynopsis $OnlineHelpUri $TagsSynopsis $Example
+	$Result = New-AnkiNote $Deck $Front $Back $HintSynopsis $Link $TagsSynopsis $Example
 	$NoteIds += $Result
 }
 
@@ -134,7 +135,7 @@ if ($Parameter.Count -gt 0) {
 		$Example = $Help.examples.example | Where-Object { $PSItem.code.Contains("-$ParameterName") }
 		$BackExtra = $Example | Format-Example
 
-		$Result = New-AnkiNote $Deck $Front $Back $HintParameter $OnlineHelpUri $TagsParameter $BackExtra
+		$Result = New-AnkiNote $Deck $Front $Back $HintParameter $Link $TagsParameter $BackExtra
 		$NoteIds += $Result
 	}
 }
